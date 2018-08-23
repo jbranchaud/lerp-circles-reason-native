@@ -67,11 +67,7 @@ let draw = (state, env) => {
       );
     {circles: new_circles, frameCount: 0, countReset: state.countReset};
   } else {
-    {
-      circles: state.circles,
-      frameCount: state.frameCount + 1,
-      countReset: state.countReset,
-    };
+    {...state, frameCount: state.frameCount + 1};
   };
 };
 
