@@ -24,6 +24,7 @@ let height = 450;
 
 type state = {
   circles: list((int, int)),
+  pastCircles: list(list((int, int))),
   frameCount: int,
   countReset: int,
 };
@@ -31,7 +32,7 @@ type state = {
 let setup = env => {
   Env.size(~width, ~height, env);
   let circles = [(75, 75), (75, 150), (75, 225), (75, 300), (75, 375)];
-  {circles, frameCount: 0, countReset: 2};
+  {circles, pastCircles: [], frameCount: 0, countReset: 2};
 };
 
 type lerp = (float, float, float) => float;
@@ -54,6 +55,29 @@ let draw = (state, env) => {
     state.circles,
   );
 
+  List.iteri(
+    (i, circle_list) =>
+      List.iteri(
+        (j, coords) =>
+          if (j mod 3 == 0) {
+            let (_, hex_color) = List.nth(colors, i + 4);
+            let (r, g, b, _a) = ColorConverter.hex_to_rgba(hex_color);
+            let (xCenter, yCenter) = coords;
+
+            /* let staggered_a = Pervasives.min(255, 30 + 3 * j); */
+            Draw.fill(Utils.color(~r, ~g, ~b, ~a=40), env);
+            Draw.ellipse(
+              ~center=(xCenter, yCenter),
+              ~radx=25,
+              ~rady=25,
+              env,
+            );
+          },
+        List.rev(circle_list),
+      ),
+    state.pastCircles,
+  );
+
   if (state.frameCount == state.countReset) {
     let new_circles =
       List.mapi(
@@ -66,7 +90,22 @@ let draw = (state, env) => {
         },
         state.circles,
       );
-    {circles: new_circles, frameCount: 0, countReset: state.countReset};
+
+    let new_past_circles =
+      List.mapi(
+        (index, circle_coords) =>
+          switch (List.nth(state.pastCircles, index)) {
+          | exception (Failure("nth")) => [circle_coords]
+          | circle_list => [circle_coords, ...circle_list]
+          },
+        state.circles,
+      );
+    {
+      circles: new_circles,
+      pastCircles: new_past_circles,
+      frameCount: 0,
+      countReset: state.countReset,
+    };
   } else {
     {...state, frameCount: state.frameCount + 1};
   };
