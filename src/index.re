@@ -34,7 +34,8 @@ let setup = env => {
   {circles, frameCount: 0, countReset: 2};
 };
 
-let lerp = (start: float, finish: float, alpha: float): float =>
+type lerp = (float, float, float) => float;
+let lerp = (start, finish, alpha) =>
   (1.0 -. alpha) *. start +. alpha *. finish;
 
 let draw = (state, env) => {
